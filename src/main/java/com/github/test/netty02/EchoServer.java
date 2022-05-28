@@ -21,48 +21,43 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-import java.util.Objects;
-
 /**
  * @author gao_xianglong@sina.com
  * @version 0.1-SNAPSHOT
- * @date created in 2022/5/27 20:13
+ * @date created in 2022/5/28 16:30
  */
 public class EchoServer {
     private int port;
-    private ServerBootstrap sbs;
-    private NioEventLoopGroup group;
 
-    public EchoServer(int port) throws Throwable {
+    public EchoServer(int port) {
         this.port = port;
-        init();
     }
 
-    private void init() throws Throwable {
-        sbs = new ServerBootstrap();
-        group = new NioEventLoopGroup();
-        var esh = new EchoServerHandler();
-        sbs.group(group).
-                localAddress(port).
-                channel(NioServerSocketChannel.class).
-                childHandler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(esh);
-                    }
-                });
-    }
-
-    public void start() throws Throwable {
-        if (Objects.isNull(sbs)) {
-            return;
-        }
+    /**
+     * 启动server侧
+     *
+     * @throws InterruptedException
+     */
+    private void start() throws InterruptedException {
+        var group = new NioEventLoopGroup();
+        var handler = new EchoServerHandler();
         try {
-            var cf = sbs.bind().sync();
-            System.out.println("server start success");
+            var bootstarp = new ServerBootstrap();
+            bootstarp.
+                    group(group).
+                    localAddress(port).
+                    channel(NioServerSocketChannel.class).
+                    childHandler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel ch) throws Exception {
+                            ch.pipeline().addLast(handler);
+                        }
+                    });
+            var cf = bootstarp.bind().sync();
+            System.out.println("服务器启动...");
             cf.channel().closeFuture().sync();
         } finally {
-            // 释放所有线程
+            // 释放所有线程资源
             group.shutdownGracefully().sync();
         }
     }
@@ -70,8 +65,8 @@ public class EchoServer {
     public static void main(String[] args) {
         try {
             new EchoServer(1443).start();
-        } catch (Throwable t) {
-            t.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -1,0 +1,19 @@
+什么是netty？
+netty是一种基于异步、事件驱动的网络框架，由于netty屏蔽了直接使用jdk nio/bio api所带来的复杂性，因此使用netty可以快速构建可维护、高性能
+的面向协议的client/server程序。
+
+channel是什么？
+channel是对socket的封装，降低直接使用socket的复杂性；
+
+eventloop是什么？
+对thread的封装，处理netty的并发逻辑，一个eventloopgroup可以包含多个eventloop，一个eventloop的整个生命周期只会和一个线程绑定，
+一个channel的所有的I/O事件都由一个具体的eventloop负责，但一个eventloop可以对应多个channel；
+
+channelfuture是什么？
+异步通知，netty的异步模型是建立在future和回调的概念上，netty的出站I/O都会返回一个ChannelFuture；
+
+channelhandler是什么？
+处理所有出/入站数据的逻辑容器；
+
+channelpipeline是什么？
+基于链表的实现，用于添加一系列的channelhandlers，并在链表上传递出/入站事件流

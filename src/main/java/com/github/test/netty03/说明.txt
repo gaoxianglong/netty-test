@@ -1,0 +1,2 @@
+ByteBuf是netty网络传输的字节容器
+创建ByteBuf实例的方式一般采用Unpooled和ByteBufAllocator，后者从Channel中获取

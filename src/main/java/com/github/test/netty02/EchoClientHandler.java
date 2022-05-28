@@ -24,18 +24,30 @@ import io.netty.util.CharsetUtil;
 /**
  * @author gao_xianglong@sina.com
  * @version 0.1-SNAPSHOT
- * @date created in 2022/5/27 20:31
+ * @date created in 2022/5/28 16:54
  */
 public class EchoClientHandler extends SimpleChannelInboundHandler {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.printf("server->client:%s\n", ((ByteBuf) msg).toString(CharsetUtil.UTF_8));
+        var bf = (ByteBuf) msg;
+        System.out.printf("c->s:%s\n", ((ByteBuf) msg).toString(CharsetUtil.UTF_8));
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.printf("connection server[%s] success\n", ctx.channel().remoteAddress().toString());
-        ctx.writeAndFlush(Unpooled.copiedBuffer("Hello netty", CharsetUtil.UTF_8));
+        var channel = ctx.channel();
+        var local = channel.localAddress().toString();
+        var remote = channel.remoteAddress().toString();
+        System.out.printf("%s成功连接%s\n", local, remote);
+        ctx.writeAndFlush(Unpooled.copiedBuffer("Hello Netty", CharsetUtil.UTF_8));
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        var channel = ctx.channel();
+        var local = channel.localAddress().toString();
+        var remote = channel.remoteAddress().toString();
+        System.out.printf("%s断开%s的连接\n", local, remote);
     }
 
     @Override

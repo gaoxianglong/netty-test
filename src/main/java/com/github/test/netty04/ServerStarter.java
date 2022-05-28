@@ -13,53 +13,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.test.netty02;
+package com.github.test.netty04;
 
-import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
  * @author gao_xianglong@sina.com
  * @version 0.1-SNAPSHOT
- * @date created in 2022/5/28 16:58
+ * @date created in 2022/5/28 21:16
  */
-public class EchoClient {
-    private String address;
+public class ServerStarter {
     private int port;
 
-    public EchoClient(String address, int port) {
-        this.address = address;
+    public ServerStarter(int port) {
         this.port = port;
     }
 
     public void start() throws InterruptedException {
         var group = new NioEventLoopGroup();
         try {
-            var bootstrap = new Bootstrap();
+            var bootstrap = new ServerBootstrap();
             bootstrap.
                     group(group).
-                    remoteAddress(address, port).
-                    channel(NioSocketChannel.class).
-                    handler(new ChannelInitializer<SocketChannel>() {
+                    localAddress(port).
+                    channel(NioServerSocketChannel.class).
+                    childHandler(new ChannelInitializer<SocketChannel>() {
+                        // 回调函数，与客户端建立会话时才会在pipoline中添加handler
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new EchoClientHandler());
+                            ch.pipeline().addLast(new ServerInboundHandler());
+                            ch.pipeline().addLast(new ServerOutboundHandler());
                         }
                     });
-            var cf = bootstrap.connect().sync();
+            var cf = bootstrap.bind().sync();
+            System.out.println("服务器启动");
             cf.channel().closeFuture().sync();
         } finally {
-            // 释放线程资源
+            // 释放所有线程资源
             group.shutdownGracefully().sync();
         }
     }
 
     public static void main(String[] args) {
         try {
-            new EchoClient("127.0.0.1", 1443).start();
+            new ServerStarter(1443).start();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
