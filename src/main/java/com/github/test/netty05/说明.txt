@@ -1,0 +1,18 @@
+什么是线程模型？
+指定了操作系统、编程语言、框架或者应用程序的上下文中线程管理的方方面面，线程模型确定了代码的执行方式；
+虽然池化资源技术有效提升了资源复用率，但是没法抵消上下文切时换带来的开销；
+
+EventLoopGroup的作用就是为每一个Channel分配一个EventLoop，Channel的生命周期会与一个EventLoop绑定，而EventLoop可以绑定多个Channel，
+Netty的线程模型类似于Reactor模型，将Acceptor线程和IO线程进行了分离，
+我们在bootstrap绑定group的时候可以进行指定，如下所示：
+bootstrap.group(acceptor, workerGroup).// 绑定acceptor线程组和worker线程组
+
+服务端实例化的时候需要指定2个EventLoopGroup，一个Acceptor线程组和一个Worker线程组，前者处理连接请求，后者处理具体的IO任务；
+如果没有显式指定Worker线程组，IO线程的处理则缺省共享Acceptor线程组资源。如果group没有指定线程池的大小，则缺省取环境变量或者CPU Cores * 2：
+Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", Runtime.getRuntime().availableProcessors() * 2));
+
+如果ServerBootstrap绑定了多个端口，那么Acceptor的线程数为对应的端口数，反之建议将线程数设置为1；
+
+netty线程模型的卓越型取决于对当前执行Thread身份的确定，Channel的整个生命周期只会和一个EventLoop绑定，
+EventLoop会处理一个Channel整个生命周期内的所有事件，如果当前线程不是Eventloop的支撑线程，则放进Eventloop的队列，
+再由Eventloop的支撑线程逐个执行。
