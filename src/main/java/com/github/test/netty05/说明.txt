@@ -16,3 +16,4 @@ Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", Runtime.getRu
 netty线程模型的卓越型取决于对当前执行Thread身份的确定，Channel的整个生命周期只会和一个EventLoop绑定，
 EventLoop会处理一个Channel整个生命周期内的所有事件，如果当前线程不是Eventloop的支撑线程，则放进Eventloop的队列，
 再由Eventloop的支撑线程逐个执行。
+

@@ -22,6 +22,8 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -58,7 +60,18 @@ public class ServerStarter {
                     childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
+                            ch.pipeline().addLast(new IdleStateHandler(0, 0, 20, TimeUnit.SECONDS));
                             ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
+
+                                @Override
+                                public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+                                    if (evt instanceof IdleStateEvent) {
+                                        ctx.close();
+                                        return;
+                                    }
+                                    super.userEventTriggered(ctx, evt);
+                                }
+
                                 @Override
                                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                                     var bf = (ByteBuf) msg;
@@ -97,6 +110,7 @@ public class ServerStarter {
             acceptor.shutdownGracefully().sync();
             workerGroup.shutdownGracefully().sync();
         }
+
     }
 
     public static void main(String[] args) {
