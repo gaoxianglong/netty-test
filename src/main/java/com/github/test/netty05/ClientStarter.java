@@ -61,11 +61,7 @@ public class ClientStarter {
                                         ctx.writeAndFlush(Unpooled.copiedBuffer("heartbeat", CharsetUtil.UTF_8)).addListener(new ChannelFutureListener() {
                                             @Override
                                             public void operationComplete(ChannelFuture future) throws Exception {
-                                                if (future.isSuccess()) {
-                                                    System.out.println("ok");
-                                                } else {
-                                                    System.out.println("处理重连");
-                                                }
+                                                // reconnect
                                             }
                                         });
                                     }
